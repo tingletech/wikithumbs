@@ -28,7 +28,7 @@ prompt$ wikithumb "Charlie Haden"
 <figure class="wikipedia_thumbnail">
   <a href="http://en.wikipedia.org/wiki/File:Gilbert_Stuart_Williamstown_Portrait_of_George_Washington.jpg">
     <img src="http://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Charlie_Haden_-_Pescara_Italy_1990.jpg/200px-Charlie_Haden_-_Pescara_Italy_1990.jpg" alt= "" />
-    <figurecaption>Image from Wikipedia</div>
+    <figurecaption>Image from Wikipedia</figurecaption>
   </a>
 </figure>
 ```

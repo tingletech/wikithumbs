@@ -19,8 +19,8 @@ from shove import Shove
 from appdirs import user_cache_dir
 from pprint import pprint as pp
 
-_base_ = 'http://dbpedia.org/sparql/'
-#_base_ = 'http://dbpedia-live.openlinksw.com/sparql/'
+#_base_ = 'http://dbpedia.org/sparql/'
+_base_ = 'http://dbpedia-live.openlinksw.com/sparql/'
 
 
 def main(argv=None):
@@ -70,11 +70,12 @@ def tohtml(results):
     html = Template("""<figure class="wikipedia_thumbnail">
   <a href="$attribution">
     <img src="$thumbnail" alt= "" />
-    <figurecaption>Image from Wikipedia</div>
+    <figurecaption>Image from Wikipedia</figurecaption>
   </a>
 </figure>""")
     attribution = results['results']['bindings'][0]['attribution']['value']
     thumbnail = results['results']['bindings'][0]['thumbnail']['value']
+    thumbnail = thumbnail.replace('200px-','150px-')
     return html.substitute(attribution=attribution, thumbnail=thumbnail)
 
 
