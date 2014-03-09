@@ -16,10 +16,8 @@ from string import Template
 from pprint import pprint as pp
 import requests
 import json
-import shove
-import percache
 from shove import Shove
-from appdirs import *
+from appdirs import user_cache_dir
 
 _base_ = 'http://dbpedia.org/sparql/'
 #_base_ = 'http://dbpedia-live.openlinksw.com/sparql/'
@@ -28,13 +26,10 @@ _base_ = 'http://dbpedia.org/sparql/'
 def main(argv=None):
     cache = "".join(['file://',user_cache_dir('wikithumbs', 'cdlib')])
     parser = argparse.ArgumentParser(description='wikithumbs')
-    parser.add_argument('page_name', nargs=1, 
-        help="wikipedia article title")
-    parser.add_argument('--localdata', 
-        help="where to keep the local stash")
+    parser.add_argument('page_name', nargs=1, help="wikipedia article title")
     parser.add_argument('--loglevel', default='ERROR')
     parser.add_argument('--cache_url',
-                        help='database URL to shove to', 
+                        help='database URL to shove to (file://... for files)', 
                         default="cache")
     if argv is None:
         argv = parser.parse_args()
@@ -42,6 +37,7 @@ def main(argv=None):
 
 
 def lookup_page_name(page_name, cache_file='file://test'):
+    """lookup info from cache"""
     page_name = page_name_normalize(page_name)
     cache = Shove(cache_file)
     if page_name in cache:
@@ -53,6 +49,7 @@ def lookup_page_name(page_name, cache_file='file://test'):
         return res        
 
 def perform_sparql_query(page_name):
+    """lookup info from dbpedia"""
     query = Template("""select * where {
   ?thumbnail dc:rights ?attribution . { SELECT ?thumbnail WHERE {
       <http://dbpedia.org/resource/$resource> <http://dbpedia.org/ontology/thumbnail> ?thumbnail
@@ -65,7 +62,6 @@ def perform_sparql_query(page_name):
         "timeout": 5000,
     }
     res = requests.get(url=_base_, params=params)
-    print "expensive"
     return json.loads(res.text)
 
 def page_name_normalize(page_name):
