@@ -5,6 +5,19 @@
 
 https://gist.github.com/tingletech/8643380
 
+## Install
+
+```
+pip install git+git://github.com/tingletech/wikithumb.git
+```
+or
+```
+git clone https://github.com/tingletech/wikithumb.git
+cd wikithumb
+python setup.py install
+```
+
+
 ## pre-programming design notes
 
 To be called from XSLT (<a href="http://xtf.cdlib.org/">XTF</a>)
