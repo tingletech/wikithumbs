@@ -13,11 +13,11 @@ https://gist.github.com/tingletech/8643380
 import sys
 import argparse
 from string import Template
-from pprint import pprint as pp
 import requests
 import json
 from shove import Shove
 from appdirs import user_cache_dir
+from pprint import pprint as pp
 
 _base_ = 'http://dbpedia.org/sparql/'
 #_base_ = 'http://dbpedia-live.openlinksw.com/sparql/'
@@ -33,7 +33,7 @@ def main(argv=None):
                         default="cache")
     if argv is None:
         argv = parser.parse_args()
-    pp(lookup_page_name(argv.page_name[0], cache))
+    print tohtml(lookup_page_name(argv.page_name[0], cache))
 
 
 def lookup_page_name(page_name, cache_file='file://test'):
@@ -46,7 +46,8 @@ def lookup_page_name(page_name, cache_file='file://test'):
         res = perform_sparql_query(page_name)
         cache[page_name] = res
         cache.sync()
-        return res        
+        return res
+
 
 def perform_sparql_query(page_name):
     """lookup info from dbpedia"""
@@ -63,6 +64,19 @@ def perform_sparql_query(page_name):
     }
     res = requests.get(url=_base_, params=params)
     return json.loads(res.text)
+
+def tohtml(results):
+    """html template"""
+    html = Template("""<figure class="wikipedia_thumbnail">
+  <a href="$attribution">
+    <img src="$thumbnail" alt= "" />
+    <figurecaption>Image from Wikipedia</div>
+  </a>
+</figure>""")
+    attribution = results['results']['bindings'][0]['attribution']['value']
+    thumbnail = results['results']['bindings'][0]['thumbnail']['value']
+    return html.substitute(attribution=attribution, thumbnail=thumbnail)
+
 
 def page_name_normalize(page_name):
     # http://en.wikipedia.org/wiki/Wikipedia:Page_name
