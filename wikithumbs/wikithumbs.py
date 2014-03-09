@@ -33,7 +33,9 @@ def main(argv=None):
                         default="cache")
     if argv is None:
         argv = parser.parse_args()
-    print tohtml(lookup_page_name(argv.page_name[0], cache))
+    html = tohtml(lookup_page_name(argv.page_name[0], cache))
+    if html is not None:
+        print html
 
 
 def lookup_page_name(page_name, cache_file='file://test'):
@@ -67,6 +69,8 @@ def perform_sparql_query(page_name):
 
 def tohtml(results):
     """html template"""
+    if len(results['results']['bindings']) == 0:
+        return
     html = Template("""<figure class="wikipedia_thumbnail">
   <a href="$attribution">
     <img src="$thumbnail" alt= "" />
