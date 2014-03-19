@@ -18,6 +18,7 @@ import json
 from shove import Shove
 from appdirs import user_cache_dir
 from pprint import pprint as pp
+import logging
 
 #_base_ = 'http://dbpedia.org/sparql/'
 _base_ = 'http://dbpedia-live.openlinksw.com/sparql/'
@@ -31,8 +32,15 @@ def main(argv=None):
     parser.add_argument('--cache_url',
                         help='database URL to shove to (file://... for files)', 
                         default="cache")
+
     if argv is None:
         argv = parser.parse_args()
+    # set debugging level
+    numeric_level = getattr(logging, argv.loglevel.upper(), None)
+    if not isinstance(numeric_level, int):
+        raise ValueError('Invalid log level: %s' % argv.loglevel)
+    logging.basicConfig(level=numeric_level, )
+
     html = tohtml(lookup_page_name(argv.page_name[0], cache))
     if html is not None:
         print html
@@ -41,10 +49,14 @@ def main(argv=None):
 def lookup_page_name(page_name, cache_file='file://test'):
     """lookup info from cache"""
     page_name = page_name_normalize(page_name)
+    logging.info(cache_file)
+    logging.info(page_name)
     cache = Shove(cache_file)
     if page_name in cache:
+        logging.debug("cache hit")
         return cache[page_name]
     else:
+        logging.debug("cache miss")
         res = perform_sparql_query(page_name)
         cache[page_name] = res
         cache.sync()
