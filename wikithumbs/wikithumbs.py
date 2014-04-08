@@ -20,9 +20,6 @@ from appdirs import user_cache_dir
 from pprint import pprint as pp
 import logging
 
-_base_ = 'http://dbpedia.org/sparql/'
-#_base_ = 'http://dbpedia-live.openlinksw.com/sparql/'
-
 
 def main(argv=None):
     cache = "".join(['file://',user_cache_dir('wikithumbs', 'cdlib')])
@@ -32,6 +29,9 @@ def main(argv=None):
     parser.add_argument('--cache_url',
                         help='database URL to shove to (file://... for files)', 
                         default="cache")
+    parser.add_argument('--sparql_url',
+                        help='defaults to http://dbpedia.org/sparql/ but http://dbpedia-live.openlinksw.com/sparql/ sometimes works better', 
+                        default="http://dbpedia.org/sparql/")
 
     if argv is None:
         argv = parser.parse_args()
@@ -40,13 +40,11 @@ def main(argv=None):
     if not isinstance(numeric_level, int):
         raise ValueError('Invalid log level: %s' % argv.loglevel)
     logging.basicConfig(level=numeric_level, )
-
-    html = tohtml(lookup_page_name(argv.page_name[0], cache))
-    if html is not None:
-        print html
+    logging.debug(argv)
+    logging.info(lookup_page_name(argv.page_name[0], cache, argv.sparql_url))
 
 
-def lookup_page_name(page_name, cache_file='file://test'):
+def lookup_page_name(page_name, cache_file='file://test', sparql_url=''):
     """lookup info from cache"""
     page_name = page_name_normalize(page_name)
     logging.info(cache_file)
@@ -57,13 +55,13 @@ def lookup_page_name(page_name, cache_file='file://test'):
         return cache[page_name]
     else:
         logging.debug("cache miss")
-        res = perform_sparql_query(page_name)
+        res = perform_sparql_query(page_name, sparql_url)
         cache[page_name] = res
         cache.sync()
         return res
 
 
-def perform_sparql_query(page_name):
+def perform_sparql_query(page_name, sparql_url):
     """lookup info from dbpedia"""
     query = Template("""select * where {
   ?thumbnail dc:rights ?attribution . { SELECT ?thumbnail WHERE {
@@ -71,13 +69,15 @@ def perform_sparql_query(page_name):
     } } } LIMIT 1""")
     query = query.substitute(resource=page_name)
     logging.info(query)
+    logging.info(sparql_url)
     params = {
         "query": query,
         "default-graph-uri": 'http://dbpedia.org',
         "format": 'application/sparql-results+json',
         "timeout": 5000,
     }
-    res = requests.get(url=_base_, params=params)
+    logging.debug(params)
+    res = requests.get(url=sparql_url, params=params)
     logging.info(res.text)
     results = json.loads(res.text)
     out = {}
@@ -90,19 +90,6 @@ def perform_sparql_query(page_name):
             "thumbnail": thumbnail,
         }
     return out
-    
-
-def tohtml(results):
-    """html template"""
-    if len(results) == 0:
-        return
-    html = Template("""<figure class="wikipedia_thumbnail">
-  <a href="$attribution">
-    <img src="$thumbnail" alt= "" />
-    <figurecaption>Image from Wikipedia</figurecaption>
-  </a>
-</figure>""")
-    return html.substitute(results)
 
 
 def page_name_normalize(page_name):
