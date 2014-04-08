@@ -20,8 +20,8 @@ from appdirs import user_cache_dir
 from pprint import pprint as pp
 import logging
 
-#_base_ = 'http://dbpedia.org/sparql/'
-_base_ = 'http://dbpedia-live.openlinksw.com/sparql/'
+_base_ = 'http://dbpedia.org/sparql/'
+#_base_ = 'http://dbpedia-live.openlinksw.com/sparql/'
 
 
 def main(argv=None):
@@ -70,6 +70,7 @@ def perform_sparql_query(page_name):
       <http://dbpedia.org/resource/$resource> <http://dbpedia.org/ontology/thumbnail> ?thumbnail
     } } } LIMIT 1""")
     query = query.substitute(resource=page_name)
+    logging.info(query)
     params = {
         "query": query,
         "default-graph-uri": 'http://dbpedia.org',
@@ -77,11 +78,23 @@ def perform_sparql_query(page_name):
         "timeout": 5000,
     }
     res = requests.get(url=_base_, params=params)
-    return json.loads(res.text)
+    logging.info(res.text)
+    results = json.loads(res.text)
+    out = {}
+    if len(results['results']['bindings']) > 0:
+        attribution = results['results']['bindings'][0]['attribution']['value']
+        thumbnail = results['results']['bindings'][0]['thumbnail']['value']
+        thumbnail = thumbnail.replace('200px-','150px-')
+        out = {
+            "attribution": attribution,
+            "thumbnail": thumbnail,
+        }
+    return out
+    
 
 def tohtml(results):
     """html template"""
-    if len(results['results']['bindings']) == 0:
+    if len(results) == 0:
         return
     html = Template("""<figure class="wikipedia_thumbnail">
   <a href="$attribution">
@@ -89,10 +102,7 @@ def tohtml(results):
     <figurecaption>Image from Wikipedia</figurecaption>
   </a>
 </figure>""")
-    attribution = results['results']['bindings'][0]['attribution']['value']
-    thumbnail = results['results']['bindings'][0]['thumbnail']['value']
-    thumbnail = thumbnail.replace('200px-','150px-')
-    return html.substitute(attribution=attribution, thumbnail=thumbnail)
+    return html.substitute(results)
 
 
 def page_name_normalize(page_name):
