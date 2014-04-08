@@ -1,4 +1,3 @@
-
 # Wikipedia Article Thubnails
 
 ## background
@@ -8,7 +7,7 @@ https://gist.github.com/tingletech/8643380
 ## Install
 
 ```
-pip install git+git://github.com/tingletech/wikithumb.git
+pip install https://github.com/tingletech/wikithumbs/archive/master.zip
 ```
 or
 ```
