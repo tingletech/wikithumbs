@@ -80,6 +80,7 @@ def perform_sparql_query(page_name, sparql_url):
     }
     logging.debug(params)
     res = requests.get(url=sparql_url, params=params)
+    res.raise_for_status()
     logging.info(res.text)
     results = json.loads(res.text)
     out = {}
