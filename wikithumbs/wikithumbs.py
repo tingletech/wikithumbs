@@ -19,6 +19,7 @@ from shove import Shove
 from appdirs import user_cache_dir
 from pprint import pprint as pp
 import logging
+import urllib
 
 
 def main(argv=None):
@@ -63,6 +64,7 @@ def lookup_page_name(page_name, cache_file='file://test', sparql_url=''):
 
 def perform_sparql_query(page_name, sparql_url):
     """lookup info from dbpedia"""
+    page_name = urllib.quote(page_name)
     query = Template("""select * where {
   ?thumbnail dc:rights ?attribution . { SELECT ?thumbnail WHERE {
       <http://dbpedia.org/resource/$resource> <http://dbpedia.org/ontology/thumbnail> ?thumbnail
