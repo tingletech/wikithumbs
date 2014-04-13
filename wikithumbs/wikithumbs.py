@@ -20,6 +20,7 @@ from appdirs import user_cache_dir
 from pprint import pprint as pp
 import logging
 import urllib
+from time import sleep
 
 
 def main(argv=None):
@@ -29,10 +30,11 @@ def main(argv=None):
     parser.add_argument('--loglevel', default='ERROR')
     parser.add_argument('--cache_url',
                         help='database URL to shove to (file://... for files)', 
-                        default="cache")
+                        default=cache)
     parser.add_argument('--sparql_url',
                         help='defaults to http://dbpedia.org/sparql/ but http://dbpedia-live.openlinksw.com/sparql/ sometimes works better', 
                         default="http://dbpedia.org/sparql/")
+    parser.add_argument('--polite_factor', default=1, help="wait this number of times request time", type=float)
 
     if argv is None:
         argv = parser.parse_args()
@@ -42,10 +44,10 @@ def main(argv=None):
         raise ValueError('Invalid log level: %s' % argv.loglevel)
     logging.basicConfig(level=numeric_level, )
     logging.debug(argv)
-    logging.info(lookup_page_name(argv.page_name[0], cache, argv.sparql_url))
+    logging.info(lookup_page_name(argv.page_name[0], argv.cache_url, argv.sparql_url, argv.polite_factor))
 
 
-def lookup_page_name(page_name, cache_file='file://test', sparql_url=''):
+def lookup_page_name(page_name, cache_file='file://test', sparql_url='', polite_factor=1):
     """lookup info from cache"""
     page_name = page_name_normalize(page_name)
     logging.info(cache_file)
@@ -56,13 +58,13 @@ def lookup_page_name(page_name, cache_file='file://test', sparql_url=''):
         return cache[page_name]
     else:
         logging.debug("cache miss")
-        res = perform_sparql_query(page_name, sparql_url)
+        res = perform_sparql_query(page_name, sparql_url, polite_factor)
         cache[page_name] = res
         cache.sync()
         return res
 
 
-def perform_sparql_query(page_name, sparql_url):
+def perform_sparql_query(page_name, sparql_url, polite_factor=1):
     """lookup info from dbpedia"""
     page_name = urllib.quote(page_name)
     query = Template("""select * where {
@@ -81,6 +83,7 @@ def perform_sparql_query(page_name, sparql_url):
     logging.debug(params)
     res = requests.get(url=sparql_url, params=params)
     res.raise_for_status()
+    seconds = res.elapsed.total_seconds()
     logging.info(res.text)
     results = json.loads(res.text)
     out = {}
@@ -92,6 +95,8 @@ def perform_sparql_query(page_name, sparql_url):
             "attribution": attribution,
             "thumbnail": thumbnail,
         }
+    sleep(seconds * polite_factor)
+    logging.debug('waited for {} seconds'.format(seconds * polite_factor))
     return out
 
 
