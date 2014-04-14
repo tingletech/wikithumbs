@@ -51,8 +51,12 @@ def export(cache, output_dir):
         output_file = os.path.join(output_dir, u''.join([identity, u'.xml']))
         logging.info(output_file)
         xmlout = open(output_file, 'w')
-        xmlout.write(xml_template(identity, thumb['thumbnail'], thumb['attribution']).encode('utf8'))
+        xmlout.write(xml_template(identity, xml_escape_url(thumb['thumbnail']), xml_escape_url(thumb['attribution'])).encode('utf8'))
         xmlout.close()
+
+
+def xml_escape_url(url):
+    return url.replace('&','&amp;')
 
 
 def xml_template(identity, thumbnail, attribution):
