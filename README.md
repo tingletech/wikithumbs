@@ -16,10 +16,23 @@ cd wikithumb
 python setup.py install
 ```
 
-Since we have millions of records we want to look up (every time
-we re-index) it should have a local cache of results.
+Python 2.6 users will need to `pip install argparse` till [#1](/../../issues/1) is fixed.
 
-Needs to work with python 2.6 
+Since we have millions of records we want to look up (every time
+we re-index) it uses [a python module `shove`](https://bitbucket.org/lcrees/shove/overview)
+to store results. And XML, gotta have XML.  One XML file per thubmnail/attribution.
+
+Well, only 88k of the initial 1.9m have wikipedia links.  And ~.5 of those have 
+thumbnail hits.
+
+The command line program `lookupthumb` takes a page name as a parameter
+and checks if there is an entry in the shove dataebase under that key, and if not
+performs a SPARQL query for the thumbnail and attribution link and
+records it.
+
+The command line program `thumbout` takes a directory name as a parameter
+and outputs an XML file for each lookup that had results into the named
+directory.
 
 ## lookupthumb
 
