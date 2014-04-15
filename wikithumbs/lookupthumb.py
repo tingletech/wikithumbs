@@ -84,6 +84,8 @@ def perform_sparql_query(page_name, sparql_url, polite_factor=1):
     res = requests.get(url=sparql_url, params=params)
     res.raise_for_status()
     seconds = res.elapsed.total_seconds()
+    # added to support python version < 2.7, otherwise timedelta has total_seconds()
+    seconds = (res.elapsed.microseconds + (res.elapsed.seconds + res.elapsed.days*24*3600) * 1e6) / 1e6
     logging.info(res.text)
     results = json.loads(res.text)
     out = {}
