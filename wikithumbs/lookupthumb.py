@@ -83,7 +83,6 @@ def perform_sparql_query(page_name, sparql_url, polite_factor=1):
     logging.debug(params)
     res = requests.get(url=sparql_url, params=params)
     res.raise_for_status()
-    seconds = res.elapsed.total_seconds()
     # added to support python version < 2.7, otherwise timedelta has total_seconds()
     seconds = (res.elapsed.microseconds + (res.elapsed.seconds + res.elapsed.days*24*3600) * 1e6) / 1e6
     logging.info(res.text)
@@ -98,7 +97,7 @@ def perform_sparql_query(page_name, sparql_url, polite_factor=1):
             "thumbnail": thumbnail,
         }
     sleep(seconds * polite_factor)
-    logging.debug('waited for {} seconds'.format(seconds * polite_factor))
+    logging.debug('waited for {0} seconds'.format(seconds * polite_factor))
     return out
 
 

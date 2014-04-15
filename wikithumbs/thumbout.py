@@ -60,9 +60,9 @@ def xml_escape_url(url):
 
 
 def xml_template(identity, thumbnail, attribution):
-    return u"""<nail id='{}'
-  thumb='{}'
-  rights='{}'/>""".format(identity, thumbnail, attribution)
+    return u"""<nail id='{0}'
+  thumb='{1}'
+  rights='{2}'/>""".format(identity, thumbnail, attribution)
 
 
 # main() idiom for importing into REPL for debugging
