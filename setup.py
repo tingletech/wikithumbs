@@ -9,7 +9,8 @@ setup(
     #tests_require = [''],
     entry_points={
         'console_scripts': [
-            'wikithumbs = wikithumbs.wikithumbs:main',
+            'lookupthumb = wikithumbs.lookupthumb:main',
+            'thumbout = wikithumbs.thumbout:main',
         ],
     }
 )
