@@ -71,7 +71,12 @@ def correct_url(url):
     if (res.status_code == requests.codes.ok):
         return url 
     elif (res.status_code == 404):      # if not found; try on english wikipedia
-        return correct_url(url.replace('/commons/','/en/',1))
+        url1 = url.replace('/commons/','/en/',1)
+        res1 = requests.head(url1)
+        if (res1.status_code == requests.codes.ok):
+            return url1
+        else:
+            return url
     elif (res.status_code == 500):      # if server error, try paramater tweaks
         url2 = url.replace('/150px-','/100px-',1)
         res2 = requests.head(url2)
