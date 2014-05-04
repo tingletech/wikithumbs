@@ -18,6 +18,7 @@ from appdirs import user_cache_dir
 from pprint import pprint as pp
 import logging
 import locale
+import requests
 
 
 def main(argv=None):
@@ -51,7 +52,8 @@ def export(cache, output_dir):
         output_file = os.path.join(output_dir, u''.join([identity, u'.xml']))
         logging.info(output_file)
         xmlout = open(output_file, 'w')
-        xmlout.write(xml_template(xml_escape_url(identity), xml_escape_url(thumb['thumbnail']), xml_escape_url(thumb['attribution'])).encode('utf8'))
+        thumbnail = correct_url(thumb['thumbnail'])
+        xmlout.write(xml_template(xml_escape_url(identity), xml_escape_url(thumbnail), xml_escape_url(thumb['attribution'])).encode('utf8'))
         xmlout.close()
 
 
@@ -63,6 +65,27 @@ def xml_template(identity, thumbnail, attribution):
     return u"""<nail id='{0}'
   thumb='{1}'
   rights='{2}'/>""".format(identity, thumbnail, attribution)
+
+def correct_url(url):
+    res = requests.head(url)
+    if (res.status_code == requests.codes.ok):
+        return url 
+    elif (res.status_code == 404):      # if not found; try on english wikipedia
+        return correct_url(url.replace('/commons/','/en/',1))
+    elif (res.status_code == 500):      # if server error, try paramater tweaks
+        url2 = url.replace('/150px-','/100px-',1)
+        res2 = requests.head(url2)
+        if (res2.status_code == requests.codes.ok):
+            return url2
+        else:
+            url3 = url.replace('/150px-','/85px-',1)
+            res3 = requests.head(url3)
+            if (res3.status_code == requests.codes.ok):
+                return url3
+            else:
+                return url
+    else:
+        return url
 
 
 # main() idiom for importing into REPL for debugging
