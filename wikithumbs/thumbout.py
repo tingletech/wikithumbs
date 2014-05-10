@@ -102,7 +102,8 @@ def correct_url(thumb):
         return correct_url_500(url)
     # not sure we can get here, something might be very wrong
     else:
-        raise Exception("wikipedia thumbnail URL had unexpected status code {0}".format(urlres.status_code))
+        raise Exception("wikipedia thumbnail URL {0} had unexpected status code {1}".format(urlres.status_code,
+                                                                                            url))
 
 
 def correct_url_404(url):
