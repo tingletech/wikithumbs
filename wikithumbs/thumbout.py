@@ -69,10 +69,19 @@ def xml_template(identity, thumbnail, attribution):
   thumb='{1}'
   rights='{2}'/>""".format(identity, thumbnail, attribution)
 
+
 def correct_url(thumb):
+    """
+    correct_url
+
+    link checker and guesser for wikipedia thunbnail URLs
+    :thumb: dict with 'thubmnail' and 'attribution' URLs
+
+    returns a checked (good) URL as a unicode string or None
+    """
     url = thumb['thumbnail']
     urlres = requests.head(url)
-    # thubmnail URL looks good
+    # thubmnail URL looks good (check the link first)
     if (urlres.status_code == requests.codes.ok):
         return url
 
@@ -95,6 +104,7 @@ def correct_url(thumb):
     else:
         raise Exception("wikipedia thumbnail URL had unexpected status code {}".format(urlres.status_code))
 
+
 def correct_url_404(url):
     # try english wikipedia
     url = url.replace('/commons/','/en/',1)
@@ -107,27 +117,16 @@ def correct_url_404(url):
     else:
         return None
 
+
 def correct_url_500(url):
     # a 500 usually means the size we requested is too large
-
-    try100 = try_smaller_image(url, '100')
-    if try100 is not None:
-        return try100
-
-    try75 = try_smaller_image(url, '75')
-    if try75 is not None:
-        return try75
-
-    try50 = try_smaller_image(url, '50')
-    if try50 is not None:
-        return try50
-
-    try15 = try_smaller_image(url, '15')
-    if try15 is not None:
-        return try15
-
+    for size in ['100','75','50','25']:
+        tryagain = try_smaller_image(url, size)
+        if tryagain is not None:
+            return tryagain
     # we gave it a shot, but that is one small image!
     return None
+
 
 def try_smaller_image(url, size):
     string = u''.join(['/', size , 'px-'])
