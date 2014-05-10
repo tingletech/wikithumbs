@@ -65,9 +65,9 @@ def xml_escape_url(url):
 
 
 def xml_template(identity, thumbnail, attribution):
-    return u"""<nail id='{}'
-  thumb='{}'
-  rights='{}'/>""".format(identity, thumbnail, attribution)
+    return u"""<nail id='{0}'
+  thumb='{1}'
+  rights='{2}'/>""".format(identity, thumbnail, attribution)
 
 
 def correct_url(thumb):
@@ -102,7 +102,7 @@ def correct_url(thumb):
         return correct_url_500(url)
     # not sure we can get here, something might be very wrong
     else:
-        raise Exception("wikipedia thumbnail URL had unexpected status code {}".format(urlres.status_code))
+        raise Exception("wikipedia thumbnail URL had unexpected status code {0}".format(urlres.status_code))
 
 
 def correct_url_404(url):
