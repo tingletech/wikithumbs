@@ -51,10 +51,13 @@ def export(cache, output_dir):
             continue
         output_file = os.path.join(output_dir, u''.join([identity, u'.xml']))
         logging.info(output_file)
-        xmlout = open(output_file, 'w')
-        thumbnail = correct_url(thumb['thumbnail'])
-        xmlout.write(xml_template(xml_escape_url(identity), xml_escape_url(thumbnail), xml_escape_url(thumb['attribution'])).encode('utf8'))
-        xmlout.close()
+        thumbnail = correct_url(thumb)
+        if thumbnail is not None:
+            xmlout = open(output_file, 'w')
+            xmlout.write(xml_template(xml_escape_url(identity),
+                         xml_escape_url(thumbnail),
+                         xml_escape_url(thumb['attribution'])).encode('utf8'))
+            xmlout.close()
 
 
 def xml_escape_url(url):
@@ -66,31 +69,74 @@ def xml_template(identity, thumbnail, attribution):
   thumb='{1}'
   rights='{2}'/>""".format(identity, thumbnail, attribution)
 
-def correct_url(url):
+def correct_url(thumb):
+    url = thumb['thumbnail']
+    urlres = requests.head(url)
+    # thubmnail URL looks good
+    if (urlres.status_code == requests.codes.ok):
+        return url
+
+    # something is not right
+    # if the attribute page for the image does not exist, then we
+    # won't find a thumbnail, so we may as well give up now
+    rights = thumb['attribution']
+    rightsres = requests.head(rights)
+    if (rightsres.status_code != requests.codes.ok):
+        return None
+
+    # okay, there should be a good thumbnail here, just not at the
+    # URL we tried
+
+    elif (urlres.status_code == 404):
+        return correct_url_404(url)
+    elif (urlres.status_code == 500):
+        return correct_url_500(url)
+    # not sure we can get here, something might be very wrong
+    else:
+        raise Exception("wikipedia thumbnail URL had unexpected status code {}".format(urlres.status_code))
+
+def correct_url_404(url):
+    # try english wikipedia
+    url = url.replace('/commons/','/en/',1)
     res = requests.head(url)
     if (res.status_code == requests.codes.ok):
-        return url 
-    elif (res.status_code == 404):      # if not found; try on english wikipedia
-        url1 = url.replace('/commons/','/en/',1)
-        res1 = requests.head(url1)
-        if (res1.status_code == requests.codes.ok):
-            return url1
-        else:
-            return url
-    elif (res.status_code == 500):      # if server error, try paramater tweaks
-        url2 = url.replace('/150px-','/100px-',1)
-        res2 = requests.head(url2)
-        if (res2.status_code == requests.codes.ok):
-            return url2
-        else:
-            url3 = url.replace('/150px-','/85px-',1)
-            res3 = requests.head(url3)
-            if (res3.status_code == requests.codes.ok):
-                return url3
-            else:
-                return url
-    else:
         return url
+    elif (res.status_code == 500):
+        return correct_url_500(url)
+    # not sure we can get here, but don't panic if we do
+    else:
+        return None
+
+def correct_url_500(url):
+    # a 500 usually means the size we requested is too large
+
+    try100 = try_smaller_image(url, '100')
+    if try100 is not None:
+        return try100
+
+    try75 = try_smaller_image(url, '75')
+    if try75 is not None:
+        return try75
+
+    try50 = try_smaller_image(url, '50')
+    if try50 is not None:
+        return try50
+
+    try15 = try_smaller_image(url, '15')
+    if try15 is not None:
+        return try15
+
+    # we gave it a shot, but that is one small image!
+    return None
+
+def try_smaller_image(url, size):
+    string = u''.join(['/', size , 'px-'])
+    url = url.replace('/150px-', string, 1)
+    res = requests.head(url)
+    if (res.status_code == requests.codes.ok):
+        return url
+    else:
+        return None
 
 
 # main() idiom for importing into REPL for debugging
