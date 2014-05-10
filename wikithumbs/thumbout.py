@@ -80,7 +80,7 @@ def correct_url(thumb):
     returns a checked (good) URL as a unicode string or None
     """
     url = thumb['thumbnail']
-    urlres = requests.head(url)
+    urlres = requests.head(url, allow_redirects=True)
     # thubmnail URL looks good (check the link first)
     if (urlres.status_code == requests.codes.ok):
         return url
